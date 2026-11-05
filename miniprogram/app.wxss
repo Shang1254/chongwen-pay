@@ -1,0 +1,127 @@
+/* ============================================================
+   全局样式：简约蓝白物业风 + 高对比度大字体
+   适配中老年业主和物业人员，字大、对比强、操作少
+   主色：物业蓝 #2B6CB0；背景：浅灰蓝 #F4F7FB
+   想整体换颜色，只改下面这几个值就行
+   ============================================================ */
+page {
+  background: #F4F7FB;
+  /* 正文基准 36rpx（约 18px），比一般小程序大一整圈 */
+  font-size: 36rpx;
+  color: #1B2735;
+  line-height: 1.6;
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* ---------- 通用卡片 ---------- */
+.card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  margin: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(43, 108, 176, 0.08);
+}
+.card-title {
+  font-size: 44rpx;
+  font-weight: 600;
+}
+.card-tip {
+  font-size: 32rpx;
+  color: #5C6B7A;
+}
+
+/* ---------- 主按钮：又大又蓝，一按就中 ---------- */
+.btn-primary {
+  background: #2B6CB0;
+  color: #ffffff;
+  font-size: 44rpx;
+  font-weight: 600;
+  border-radius: 52rpx;
+  height: 104rpx;
+  line-height: 104rpx;
+}
+.btn-primary::after {
+  border: none; /* 去掉按钮自带的灰边框 */
+}
+.btn-primary[disabled] {
+  background: #A9C2DF;
+  color: #ffffff;
+}
+
+/* ---------- 次按钮：白底蓝框，用于次要操作 ---------- */
+.btn-ghost {
+  background: #ffffff;
+  color: #2B6CB0;
+  border: 3rpx solid #2B6CB0;
+  font-size: 38rpx;
+  font-weight: 600;
+  border-radius: 52rpx;
+  height: 96rpx;
+  line-height: 96rpx;
+}
+.btn-ghost::after {
+  border: none;
+}
+
+/* ---------- 大金额数字 ---------- */
+.big-amount {
+  font-size: 72rpx;
+  font-weight: 700;
+  color: #1E4E8C;
+}
+
+/* ---------- 状态小标签 ---------- */
+.tag {
+  display: inline-block;
+  font-size: 30rpx;
+  padding: 4rpx 20rpx;
+  border-radius: 10rpx;
+}
+.tag-green {
+  background: #E8F0FA;
+  color: #2B6CB0;
+}
+.tag-red {
+  background: #FDECEA;
+  color: #C62828;
+}
+.tag-orange {
+  background: #FFF3E0;
+  color: #E67E22;
+}
+
+/* ---------- 输入框：大号字，看得清 ---------- */
+.input-big {
+  background: #F1F5FB;
+  border: 2rpx solid #C5D4E8;
+  border-radius: 16rpx;
+  height: 100rpx;
+  padding: 0 28rpx;
+  font-size: 40rpx;
+  box-sizing: border-box;
+}
+.input-label {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+/* ---------- 价格公示条：物业零加价 ---------- */
+.price-notice {
+  background: #E8F0FA;
+  color: #1E4E8C;
+  font-size: 28rpx;
+  line-height: 1.6;
+  padding: 14rpx 24rpx;
+  margin: 16rpx 24rpx;
+  border-radius: 12rpx;
+}
+
+/* ---------- 空状态提示 ---------- */
+.empty-tip {
+  text-align: center;
+  color: #5C6B7A;
+  font-size: 34rpx;
+  padding: 60rpx 0;
+}

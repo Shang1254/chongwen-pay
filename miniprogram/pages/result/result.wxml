@@ -1,0 +1,14 @@
+<view class="page">
+  <view class="card result-card">
+    <view class="result-emoji">✅</view>
+    <view class="result-title">缴费成功！</view>
+    <view class="big-amount">¥{{amount}}</view>
+    <view class="result-tip">共 {{count}} 笔账单已缴清，可在"缴费记录"里随时查看</view>
+    <view class="result-notice">水电费按官方定价代收，物业零加价</view>
+  </view>
+
+  <button class="btn-primary back-btn" wx:if="{{orderNo}}" bindtap="goVoucher">📄 查看电子缴费凭证</button>
+  <button class="btn-ghost back-btn" wx:if="{{canSubscribe}}" bindtap="subscribe">🔔 开启欠费/缴费提醒</button>
+  <button class="btn-ghost back-btn" bindtap="goHome">返回首页</button>
+  <button class="btn-ghost back-btn" bindtap="goBills">查看缴费记录</button>
+</view>

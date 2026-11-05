@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>崇文兰亭缴费通 · 单元楼海报（打印版）</title>
+<style>
+  /* A4 打印适配：浏览器打开 → Ctrl+P → 纸张选 A4 → 边距默认 → 打印 */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #fff; }
+  .poster {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 14mm 12mm;
+    background: #ffffff;
+    color: #1B1B1B;
+    text-align: center;
+  }
+  .top {
+    background: linear-gradient(135deg, #2B6CB0, #3E85D0);
+    color: #fff;
+    border-radius: 16px;
+    padding: 26px 16px 30px;
+  }
+  .tag-line {
+    display: inline-block;
+    background: #FFB300;
+    color: #4E3600;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 4px 18px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+  .top h1 { font-size: 40px; line-height: 1.35; }
+  .top p { font-size: 20px; margin-top: 10px; opacity: .95; }
+
+  .steps {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 22px 0;
+  }
+  .step {
+    flex: 1;
+    background: #EEF4FB;
+    border: 2px solid #C5D4E8;
+    border-radius: 12px;
+    padding: 14px 6px;
+  }
+  .step .no {
+    width: 34px; height: 34px; line-height: 34px;
+    background: #2B6CB0; color: #fff; border-radius: 50%;
+    font-size: 19px; font-weight: 700; margin: 0 auto 8px;
+  }
+  .step b { font-size: 19px; display: block; }
+  .step span { font-size: 14px; color: #5C6B7A; }
+
+  .qr-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    margin: 10px 0 18px;
+  }
+  .qr-box {
+    width: 150px; height: 150px;
+    border: 3px dashed #2B6CB0;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; color: #2B6CB0; font-weight: 700;
+    background: #EEF4FB;
+  }
+  .qr-side { text-align: left; }
+  .qr-side .big { font-size: 30px; font-weight: 800; color: #1E4E8C; line-height: 1.5; }
+  .qr-side .small { font-size: 16px; color: #5C6B7A; margin-top: 6px; }
+
+  .points { font-size: 19px; line-height: 2; margin: 0 auto 16px; display: inline-block; text-align: left; }
+  .points b { color: #2B6CB0; }
+
+  .help {
+    background: #FFF8F0;
+    border: 2px solid #E8C79A;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+  .foot { margin-top: 16px; font-size: 15px; color: #8FA0B5; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .poster { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="poster">
+    <div class="top">
+      <div class="tag-line">2号楼率先试用</div>
+      <h1>交水电费、物业费，不用再跑腿啦</h1>
+      <p>崇文兰亭便民缴费通 · 武汉鼎诚物业 · 微信扫一扫就能用</p>
+    </div>
+
+    <div class="steps">
+      <div class="step"><div class="no">1</div><b>微信扫码</b><span>不用下载，即扫即用</span></div>
+      <div class="step"><div class="no">2</div><b>绑定房号</b><span>填房号 + 户主姓名</span></div>
+      <div class="step"><div class="no">3</div><b>手机缴费</b><span>每月点一下就行</span></div>
+    </div>
+
+    <div class="qr-area">
+      <div class="qr-box">小程序码<br>贴在这里</div>
+      <div class="qr-side">
+        <div class="big">三步就交完<br>字大看得清<br>到期自动提醒</div>
+        <div class="small">免费使用 · 只服务咱崇文兰亭 · 凭物业邀请码进入</div>
+      </div>
+    </div>
+
+    <div class="points">
+      ✅ <b>不用排队</b>：在家躺着交水电费、物业费<br>
+      ✅ <b>不用记日子</b>：到期前 3 天微信自动提醒<br>
+      ✅ <b>交得明白</b>：官方定价、物业零加价，电子凭证随时查<br>
+      ✅ <b>报修也方便</b>：漏水漏电，手机上直接报给物业<br>
+      ✅ <b>2号楼试点</b>：用得好，马上推广全小区
+    </div>
+
+    <div class="help">
+      不会弄？<b>每周三、周六 9:00-11:00</b> 物业办公室有人手把手教<br>
+      试点邀请码找物业领取 · 咨询电话：<b>88398808</b>
+    </div>
+
+    <div class="foot">武汉鼎诚物业服务中心 宣 · 小程序正式发布后，二维码从公众平台下载替换</div>
+  </div>
+</body>
+</html>

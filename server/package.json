@@ -1,0 +1,22 @@
+{
+  "name": "cwlt-server",
+  "version": "1.0.0",
+  "description": "崇文兰亭便民缴费通后端（Node.js + MySQL 轻量版，武汉鼎诚物业）",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "seed": "node scripts/seed-demo.js",
+    "seed:property": "node scripts/seed-property.js",
+    "migrate": "node db/migrate-v2.js",
+    "test:e2e": "node scripts/e2e-test.js",
+    "test:load": "node scripts/load-test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mysql2": "^3.11.0",
+    "xlsx": "^0.18.5"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

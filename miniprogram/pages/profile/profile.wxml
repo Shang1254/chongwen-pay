@@ -1,0 +1,59 @@
+<view class="page">
+  <!-- 我的房产（支持多房产 / 业主租户标识） -->
+  <view class="card" wx:if="{{households.length > 0}}">
+    <view class="about-title">🏠 我的房产（{{households.length}} 套）</view>
+
+    <view class="hh-item" wx:for="{{households}}" wx:key="id">
+      <view class="hh-top">
+        <text class="hh-room">{{item.roomLabel}}</text>
+        <text class="tag {{item.role === 'tenant' ? 'tag-orange' : 'tag-green'}}">{{item.role === 'tenant' ? '租户' : '业主'}}</text>
+      </view>
+      <view class="hh-sub" wx:if="{{item.role === 'owner'}}">户主：{{item.owner_name}}</view>
+      <view class="hh-sub">水费代收余额：¥{{item.waterBalance}}（以物业登记为准）</view>
+      <view class="hh-ops">
+        <button class="mini-btn" size="mini" data-id="{{item.id}}" bindtap="goHomeFor">去缴费</button>
+        <button class="mini-btn ghost" size="mini" data-id="{{item.id}}" bindtap="unbindHousehold">解绑此房</button>
+      </view>
+    </view>
+
+    <button class="btn-ghost mt" bindtap="goBills">📋 查看缴费记录</button>
+    <button class="btn-ghost mt" bindtap="goRepair">🔧 物业报修</button>
+    <button class="btn-ghost mt" bindtap="goBind">➕ 添加房产 / 绑定新户号</button>
+  </view>
+
+  <!-- 未绑定 -->
+  <view class="card" wx:if="{{households.length === 0}}">
+    <view class="room-emoji">🏠</view>
+    <view class="room-label">还没有绑定房号</view>
+    <view class="room-owner">绑定后就能在手机上缴水电费和物业费</view>
+    <button class="btn-primary mt" bindtap="goBind">去绑定户号</button>
+  </view>
+
+  <!-- 价格公示：物业零加价 -->
+  <view class="card price-card">
+    <view class="about-title">💡 价格公示</view>
+    <view class="about-line">{{priceNotice}}</view>
+    <view class="about-line">缴费成功后可在"缴费记录"查看电子凭证，凭证带防伪码。</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="card">
+    <view class="about-title">关于本小程序</view>
+    <view class="about-line">{{community}}便民缴费通 · {{company}}</view>
+    <view class="about-line">2号楼试点版 · 缴费步骤不超过 3 步，字体大、看得清</view>
+    <view class="about-line" wx:if="{{testAccess}}">✅ 已解锁 2栋试点测试入口</view>
+    <view class="about-line" wx:if="{{mockMode}}">当前为演示模式：支付走模拟流程，正式上线需物业配置支付商户</view>
+  </view>
+
+  <!-- 服务入口：微信官方能力（客服/反馈）+ 提醒授权 + 隐私指引 -->
+  <view class="card">
+    <view class="about-title">帮助与服务</view>
+    <view class="about-line">缴费有疑问？可以在线问物业客服，也可以打电话</view>
+    <button class="btn-ghost mt" open-type="contact" session-from="profile">💬 在线客服</button>
+    <button class="btn-ghost mt" open-type="feedback">✍️ 意见反馈</button>
+    <button class="btn-ghost mt" bindtap="subscribeRemind">🔔 开启欠费提醒</button>
+    <button class="btn-ghost mt" bindtap="openPrivacy">🔒 用户隐私保护指引</button>
+  </view>
+
+  <button class="btn-ghost" bindtap="callProperty">📞 联系物业（{{phone}}）</button>
+</view>

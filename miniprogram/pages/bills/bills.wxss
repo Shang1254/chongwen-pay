@@ -1,0 +1,55 @@
+/* 缴费记录页样式：蓝白物业风 */
+.room-line {
+  background: #E8F0FA;
+  color: #1E4E8C;
+  font-size: 28rpx;
+  padding: 14rpx 24rpx;
+  margin: 16rpx 24rpx 0;
+  border-radius: 12rpx;
+}
+
+.section-title {
+  font-size: 38rpx;
+  font-weight: 700;
+  margin: 28rpx 32rpx 12rpx;
+  color: #2B6CB0;
+}
+.section-title.mt {
+  margin-top: 44rpx;
+}
+
+.bill-row {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 28rpx 30rpx;
+  margin: 16rpx 24rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bill-row.done {
+  opacity: 0.9;
+}
+.bill-row-name {
+  font-size: 38rpx;
+  font-weight: 600;
+}
+.bill-row-meta {
+  font-size: 30rpx;
+  color: #5C6B7A;
+  margin-top: 6rpx;
+}
+.bill-row-right {
+  text-align: right;
+}
+.bill-row-amount {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: #1E4E8C;
+  margin-bottom: 8rpx;
+}
+
+.mt-btn {
+  margin: 40rpx 24rpx 0;
+  width: calc(100% - 48rpx);
+}

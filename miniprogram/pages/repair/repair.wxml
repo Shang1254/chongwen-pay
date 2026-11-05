@@ -1,0 +1,60 @@
+<view class="page">
+  <!-- 提交报修 -->
+  <view class="card">
+    <view class="card-title">🔧 物业报修</view>
+    <view class="card-tip">家里水电、门窗有问题，填在这里，物业会尽快联系您</view>
+
+    <view class="form-row mt">
+      <label class="input-label">报修类型</label>
+      <picker mode="selector" range="{{categories}}" value="{{catIndex}}" bindchange="onCat">
+        <view class="picker-box">{{categories[catIndex]}} ▾</view>
+      </picker>
+    </view>
+
+    <view class="form-row">
+      <label class="input-label">问题描述</label>
+      <textarea class="textarea-big" placeholder="例如：厨房水龙头一直滴水，关不紧"
+                value="{{content}}" bindinput="onContent" maxlength="500"></textarea>
+    </view>
+
+    <view class="form-row">
+      <label class="input-label">现场照片（选填）</label>
+      <view class="img-row">
+        <view wx:if="{{!imgUrl}}" class="img-add" bindtap="chooseImg">📷<text>拍照/选图</text></view>
+        <block wx:else>
+          <image class="repair-img" src="{{absImg}}" mode="aspectFill" bindtap="previewImg"></image>
+          <view class="img-del" bindtap="delImg">✕ 移除</view>
+        </block>
+      </view>
+    </view>
+
+    <view class="form-row">
+      <label class="input-label">联系电话（选填）</label>
+      <input class="input-big" type="number" placeholder="方便师傅联系您"
+             value="{{contact}}" bindinput="onContact" maxlength="20" />
+    </view>
+
+    <button class="btn-primary submit-btn" bindtap="submit" disabled="{{submitting}}">
+      {{submitting ? '正在提交…' : '提交报修'}}
+    </button>
+  </view>
+
+  <!-- 我的报修记录 -->
+  <view class="card">
+    <view class="card-title">我的报修记录</view>
+    <view class="empty-tip" wx:if="{{loading}}">加载中…</view>
+    <view class="empty-tip" wx:if="{{!loading && list.length === 0}}">还没有报修记录</view>
+
+    <view class="repair-item" wx:for="{{list}}" wx:key="id">
+      <view class="repair-head">
+        <view class="repair-cat">{{item.category}}</view>
+        <view class="tag {{item.status === 'done' ? 'tag-green' : 'tag-red'}}">{{item.statusLabel}}</view>
+      </view>
+      <view class="repair-content">{{item.content}}</view>
+      <image wx:if="{{item.img}}" class="repair-thumb" src="{{item.img}}" mode="aspectFill"
+             data-url="{{item.img}}" bindtap="previewListItem"></image>
+      <view class="repair-meta">{{item.createdAt}}{{item.contact ? ' · 电话 ' + item.contact : ''}}</view>
+      <view class="repair-feedback" wx:if="{{item.feedback}}">物业回复：{{item.feedback}}</view>
+    </view>
+  </view>
+</view>

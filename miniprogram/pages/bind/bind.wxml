@@ -1,0 +1,53 @@
+<view class="page">
+  <view class="card">
+    <view class="card-title">绑定您家的房号</view>
+    <view class="card-tip">业主认证更严格（防冒绑），租户填本人手机号即可；一个微信可绑多套房</view>
+  </view>
+
+  <view class="card">
+    <view class="step-line">第 1 步：填房号</view>
+
+    <view class="form-row">
+      <label class="input-label">单元号</label>
+      <input class="input-big" type="number" placeholder="例如：1" placeholder-class="ph"
+             value="{{unit}}" bindinput="onUnit" />
+    </view>
+
+    <view class="form-row">
+      <label class="input-label">房号</label>
+      <input class="input-big" type="number" placeholder="例如：302" placeholder-class="ph"
+             value="{{roomNo}}" bindinput="onRoom" />
+    </view>
+
+    <view class="step-line mt">第 2 步：填姓名</view>
+    <view class="form-row">
+      <input class="input-big" placeholder="业主填缴费单上的户主姓名；租户填本人" placeholder-class="ph"
+             value="{{ownerName}}" bindinput="onName" />
+    </view>
+
+    <view class="step-line mt">第 3 步：填手机号</view>
+    <view class="form-row">
+      <input class="input-big" type="number" placeholder="用于认证和联系" placeholder-class="ph"
+             value="{{phone}}" bindinput="onPhone" maxlength="15" />
+    </view>
+    <view class="mini-tip">物业登记过手机号的房号，必须填一致的号码才能完成业主认证；租户必填本人手机号</view>
+
+    <view class="step-line mt">第 4 步：选择身份</view>
+    <view class="role-chips">
+      <view class="role-chip {{role === 'owner' ? 'on' : ''}}" data-role="owner" bindtap="setRole">🏠 我是业主</view>
+      <view class="role-chip {{role === 'tenant' ? 'on' : ''}}" data-role="tenant" bindtap="setRole">🔑 我是租户</view>
+    </view>
+
+    <button class="btn-primary submit-btn" bindtap="submit" disabled="{{submitting}}">
+      {{submitting ? '正在认证…' : '确认绑定'}}
+    </button>
+  </view>
+
+  <view class="card tip-card">
+    <view class="tip-title">💡 小提示</view>
+    <view class="tip-line">· 业主姓名必须和缴费单上的"户主"完全一样</view>
+    <view class="tip-line">· 手机号对不上？带身份证到物业前台核实（电话 {{propertyPhone}}）</view>
+    <view class="tip-line">· 一套房可以同时绑定业主和租户（各自用各自的微信）</view>
+    <view class="tip-line">· 试点阶段需先在首页输入邀请码，才能绑定</view>
+  </view>
+</view>

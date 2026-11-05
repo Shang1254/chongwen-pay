@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>崇文兰亭缴费通 · 物业端 | 武汉鼎诚物业</title>
+  <link rel="stylesheet" href="admin.css?v=9">
+</head>
+<body>
+
+  <!-- ========== 登录页 ========== -->
+  <div id="login-view" class="login-wrap hidden">
+    <div class="login-card">
+      <h1>崇文兰亭缴费通</h1>
+      <p class="sub">武汉鼎诚物业 · 2号楼试点 · 物业端</p>
+      <label>账号</label>
+      <input id="login-user" type="text" placeholder="默认 admin">
+      <label>密码</label>
+      <input id="login-pass" type="password" placeholder="默认 admin123">
+      <button id="login-btn" class="btn green">登 录</button>
+      <p id="login-msg" class="msg"></p>
+    </div>
+  </div>
+
+  <!-- ========== 主界面：左侧导航 + 右侧内容 ========== -->
+  <div id="main-view" class="layout hidden">
+    <aside class="side">
+      <div class="side-brand">
+        <div class="side-logo">🏡</div>
+        <div>
+          <div class="side-title">崇文兰亭缴费通</div>
+          <div class="side-sub">物业端 · 武汉鼎诚物业</div>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <div class="side-item on" data-tab="overview">🏠 工作台</div>
+        <div class="side-group">收费管理</div>
+        <div class="side-item sub" data-tab="unpaid">欠费名单</div>
+        <div class="side-item sub" data-tab="orders">收款记录</div>
+        <div class="side-item sub" data-tab="regulatory">监管留痕</div>
+        <div class="side-group">账单管理</div>
+        <div class="side-item sub" data-tab="wizard">✍️ 抄表向导</div>
+        <div class="side-item sub" data-tab="import">📥 批量导入</div>
+        <div class="side-group">服务</div>
+        <div class="side-item" data-tab="repairs">🔧 报修处理</div>
+        <div class="side-group">住户与档案</div>
+        <div class="side-item sub" data-tab="households">住户档案</div>
+        <div class="side-item sub" data-tab="adminlogs">操作日志</div>
+        <div class="side-group">报表</div>
+        <div class="side-item sub" data-tab="usage">📈 用量分析</div>
+      </nav>
+
+      <!-- 用服务状态/物业电话把侧边栏底部填实，不再是大块空白 -->
+      <div class="side-info">
+        <div class="info-title">服务状态</div>
+        <div class="info-line">数据库：<span id="side-db">检测中…</span></div>
+        <div class="info-line">运行模式：<span id="side-mode">-</span></div>
+        <div class="info-line">今日实收：<span id="side-today">-</span></div>
+      </div>
+      <div class="side-info">
+        <div class="info-title">📞 物业电话</div>
+        <div class="info-line">88398808（业主咨询）</div>
+      </div>
+
+      <div class="side-foot">
+        <span id="mock-badge" class="badge hidden">演示模式</span>
+        <span class="side-ver">v4.2</span>
+        <button id="logout-btn" class="btn plain small">退出登录</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="head-title" id="page-title">工作台</div>
+        <div class="head-sub">崇文兰亭 · 2号楼试点（1200户覆盖目标）</div>
+      </header>
+
+      <!-- ========== 工作台 ========== -->
+      <section id="tab-overview" class="tab">
+        <div class="stat-grid">
+          <div class="stat-card link" onclick="goto('unpaid')"><div class="stat-num blue" id="st-unpaid-cnt">-</div><div class="stat-label">未缴账单（笔）</div></div>
+          <div class="stat-card link" onclick="goto('unpaid')"><div class="stat-num blue" id="st-unpaid-amt">-</div><div class="stat-label">未缴金额（元）</div></div>
+          <div class="stat-card link" onclick="goto('unpaid')"><div class="stat-num red" id="st-overdue">-</div><div class="stat-label">已逾期（笔）</div></div>
+          <div class="stat-card link" onclick="goto('repairs')"><div class="stat-num orange" id="st-repair">-</div><div class="stat-label">待处理报修（单）</div></div>
+          <div class="stat-card"><div class="stat-num blue" id="st-today">-</div><div class="stat-label">今日实收（元）</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-notify">-</div><div class="stat-label">今日提醒（条）</div></div>
+          <div class="stat-card link" onclick="goto('households')"><div class="stat-num" id="st-bound">-</div><div class="stat-label">已绑定居民（户次）</div></div>
+        </div>
+
+        <div class="wb-grid">
+          <div class="panel">
+            <h3>⏰ 今日待办</h3>
+            <div class="wb-block">
+              <div class="wb-title">最紧急的逾期账单（<span id="wb-overdue-n">-</span> 笔）</div>
+              <div id="wb-overdue" class="muted">加载中…</div>
+            </div>
+            <div class="wb-block">
+              <div class="wb-title">待处理报修（<span id="wb-repairs-n">-</span> 单）</div>
+              <div id="wb-repairs" class="muted">加载中…</div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>📅 本月账单录入进度</h3>
+            <div id="wb-progress">加载中…</div>
+            <div class="btn-row mt8">
+              <button class="btn green" onclick="goto('wizard')">✍️ 去抄表</button>
+              <button id="wb-push" class="btn plain">📣 一键催缴</button>
+            </div>
+            <p class="muted mt8">进度 = 本月已生成账单的户数 / 总户数。录完电、水、物业费三项即 100%。</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>最新欠费汇总（欠费提醒 Agent 每天自动生成）</h3>
+          <div id="latest-report" class="muted">加载中…</div>
+        </div>
+        <div class="panel">
+          <h3>自动任务</h3>
+          <div id="agent-result" class="muted mt8">欠费提醒每天上午 8 点后自动执行；用量分析每月 1 号自动执行。</div>
+          <div class="btn-row mt8">
+            <button id="run-remind" class="btn plain small">🔔 立即执行欠费提醒</button>
+            <button id="run-usage" class="btn plain small">📈 立即执行用量分析</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 欠费名单 ========== -->
+      <section id="tab-unpaid" class="tab hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>欠费名单</h3>
+            <div class="btn-row">
+              <input id="f-room" class="filter-input" placeholder="搜房号/户主">
+              <select id="f-unit" class="filter-input">
+                <option value="">全部单元</option>
+                <option value="1">1单元</option>
+                <option value="2">2单元</option>
+              </select>
+              <select id="f-type" class="filter-input">
+                <option value="">全部类型</option>
+                <option value="electric">电费</option>
+                <option value="water">水费</option>
+                <option value="property">物业费</option>
+              </select>
+              <label class="muted"><input type="checkbox" id="f-overdue"> 只看逾期</label>
+              <button id="f-search" class="btn green small">🔍 查询</button>
+              <button id="f-reset" class="btn plain small">重置</button>
+              <button id="push-unpaid" class="btn green small">📣 一键催缴</button>
+              <button id="export-csv" class="btn plain small">⬇️ 导出催缴单</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>房号</th><th>户主</th><th>类型</th><th>账期</th><th>金额</th><th>到期日</th><th>逾期</th><th>线下兜底收款</th></tr></thead>
+              <tbody id="unpaid-body"><tr><td colspan="8" class="muted">加载中…</td></tr></tbody>
+            </table>
+          </div>
+          <div id="unpaid-pager" class="pager"></div>
+        </div>
+      </section>
+
+      <!-- ========== 收款记录 ========== -->
+      <section id="tab-orders" class="tab hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>收款记录（实时到账，支持退款）</h3>
+            <div class="btn-row">
+              <label class="muted">缴费日期：</label>
+              <input type="date" id="o-date">
+              <select id="o-status" class="filter-input">
+                <option value="">全部状态</option>
+                <option value="success">已支付</option>
+                <option value="created">待支付</option>
+                <option value="closed">已关闭</option>
+              </select>
+              <input id="o-kw" class="filter-input" placeholder="搜订单号/支付单号/凭证号">
+              <button id="o-search" class="btn green small">🔍 查询</button>
+              <button id="o-reset" class="btn plain small">重置</button>
+            </div>
+            <div class="btn-row mt8">
+              <label class="muted">对账日期：</label>
+              <input type="date" id="stl-date">
+              <button id="settlement-btn" class="btn plain small">⬇️ 导出对账文件</button>
+              <button id="orders-refresh" class="btn plain small">🔄 刷新</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>时间</th><th>房号</th><th>项目</th><th>金额</th><th>状态</th><th>渠道</th><th>支付单号</th><th>凭证号</th><th>退款</th><th>操作</th></tr></thead>
+              <tbody id="orders-body"><tr><td colspan="10" class="muted">加载中…</td></tr></tbody>
+            </table>
+          </div>
+          <div id="orders-pager" class="pager"></div>
+        </div>
+      </section>
+
+      <!-- ========== 监管留痕 ========== -->
+      <section id="tab-regulatory" class="tab hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>收费监管留痕（哈希链防篡改，可导出报送）</h3>
+            <div class="btn-row">
+              <label class="muted">月份：</label>
+              <input type="month" id="rg-month">
+              <select id="rg-type" class="filter-input">
+                <option value="">全部类型</option>
+                <option value="payment">缴费</option>
+                <option value="refund">退款</option>
+              </select>
+              <input id="rg-kw" class="filter-input" placeholder="搜记录编号/房号/支付单号">
+              <button id="rg-search" class="btn green small">🔍 查询</button>
+              <button id="rg-reset" class="btn plain small">重置</button>
+              <button id="rg-chain" class="btn plain small">🔗 全量校验哈希链</button>
+              <button id="rg-export" class="btn plain small">⬇️ 导出 CSV</button>
+            </div>
+          </div>
+          <div id="rg-summary" class="muted">按月份查询缴费留痕；导出文件可用于向主管部门报送或对接住建监管系统。</div>
+          <div class="table-wrap mt8">
+            <table>
+              <thead><tr><th>类型</th><th>记录编号</th><th>房号</th><th>业主</th><th>费用类型</th><th>账期</th><th>金额</th><th>收款渠道</th><th>时间</th></tr></thead>
+              <tbody id="rg-body"><tr><td colspan="9" class="muted">加载中…</td></tr></tbody>
+            </table>
+          </div>
+          <div id="rg-pager" class="pager"></div>
+        </div>
+      </section>
+
+      <!-- ========== 抄表向导 ========== -->
+      <section id="tab-wizard" class="tab hidden">
+        <div class="panel">
+          <h3>✍️ 抄表向导（整单元一屏录完，上次读数自动带出）</h3>
+          <div class="form-grid">
+            <div><label>单元</label>
+              <select id="wz-unit"><option value="1">1单元</option><option value="2">2单元</option></select>
+            </div>
+            <div><label>类型</label>
+              <select id="wz-type"><option value="electric">电费</option><option value="water">水费</option></select>
+            </div>
+            <div><label>账期</label><input id="wz-period" type="month"></div>
+            <div><label>缴费截止日</label><input id="wz-due" type="date"></div>
+            <div class="self-end"><button id="wz-load" class="btn green">📄 调出抄表单</button></div>
+          </div>
+          <div id="wz-info" class="muted mt8">选择单元和类型后点"调出抄表单"。</div>
+          <div class="table-wrap mt8 hidden" id="wz-table">
+            <table>
+              <thead><tr><th>房号</th><th>户主</th><th>上次读数</th><th>本次读数</th><th>预估金额</th><th>状态</th></tr></thead>
+              <tbody id="wz-body"></tbody>
+            </table>
+          </div>
+          <button id="wz-save" class="btn green mt8 hidden">💾 保存全部已填读数</button>
+          <div id="wz-result" class="msg mt8"></div>
+        </div>
+
+        <div class="panel">
+          <h3>🏢 物业费录入（按面积×单价，也可直接填金额）</h3>
+          <div class="form-grid">
+            <div><label>单元</label><input id="pb-unit" type="number" placeholder="1"></div>
+            <div><label>房号</label><input id="pb-room" type="number" placeholder="302"></div>
+            <div><label>账期</label><input id="pb-period" type="month"></div>
+            <div><label>金额（留空=自动算）</label><input id="pb-amount" type="number" placeholder="留空按面积算"></div>
+            <div><label>缴费截止日</label><input id="pb-due" type="date"></div>
+            <div class="self-end"><button id="pb-submit" class="btn green">保存物业费</button></div>
+          </div>
+          <div id="pb-result" class="msg mt8"></div>
+        </div>
+      </section>
+
+      <!-- ========== 批量导入 ========== -->
+      <section id="tab-import" class="tab hidden">
+        <div class="panel">
+          <h3>📥 Excel / CSV 批量导入</h3>
+          <p class="muted">
+            支持 .xlsx / .xls / .csv，自动识别表头，列顺序随意。必填列：<b>房号</b>、<b>费用类型</b>、<b>账期</b>；
+            费用类型填 电费 / 水费 / 物业费；电水可以只填用量，物业费可以只填金额。
+            整单元抄表建议用左侧「抄表向导」，更快。
+          </p>
+          <div class="btn-row mt8">
+            <button id="template-btn" class="btn plain small">⬇️ 下载导入模板</button>
+            <label class="btn green small file-btn">📂 选择 Excel/CSV 文件
+              <input id="imp-file" type="file" accept=".xlsx,.xls,.csv" hidden>
+            </label>
+          </div>
+          <div id="imp-result" class="msg mt8"></div>
+          <div class="table-wrap mt8 hidden" id="imp-table">
+            <table>
+              <thead><tr><th>行</th><th>结果</th><th>说明</th></tr></thead>
+              <tbody id="imp-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 报修处理 ========== -->
+      <section id="tab-repairs" class="tab hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>物业报修（居民提交）</h3>
+            <button id="repairs-refresh" class="btn plain small">🔄 刷新</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>时间</th><th>房号</th><th>类型</th><th>问题描述</th><th>联系电话</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody id="repairs-body"><tr><td colspan="7" class="muted">加载中…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 住户档案 ========== -->
+      <section id="tab-households" class="tab hidden">
+        <div class="panel">
+          <h3>➕ 新增住户（不用再进数据库加人）</h3>
+          <div class="form-grid">
+            <div><label>单元</label><input id="ha-unit" type="number" placeholder="1"></div>
+            <div><label>房号</label><input id="ha-room" type="number" placeholder="303"></div>
+            <div><label>户主姓名</label><input id="ha-name" placeholder="张三"></div>
+            <div><label>面积（㎡）</label><input id="ha-area" type="number" placeholder="90"></div>
+            <div><label>登记手机号（选填）</label><input id="ha-phone" type="number" placeholder="业主绑定认证用"></div>
+            <div class="self-end"><button id="ha-add" class="btn green">➕ 添加住户</button></div>
+          </div>
+          <div id="ha-result" class="msg mt8"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>住户档案（<span id="hh-count">-</span> 户）</h3>
+            <input id="hh-search" class="filter-input" placeholder="搜房号/户主">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>房号</th><th>户主</th><th>面积(㎡)</th><th>登记手机号</th><th>水费余额</th><th>绑定数</th><th>实时欠费（电/水/物业）</th><th>操作</th></tr></thead>
+              <tbody id="hh-body"><tr><td colspan="8" class="muted">加载中…</td></tr></tbody>
+            </table>
+          </div>
+          <p class="muted mt8">欠费为实时统计（以账单库为准）；👁 看欠费明细/绑定居民；📣 向该户绑定居民推送催缴；📱 登记手机号（业主绑定认证）；💰 设水费代收余额；✏️ 改户主/面积。</p>
+        </div>
+      </section>
+
+      <!-- ========== 操作日志 ========== -->
+      <section id="tab-adminlogs" class="tab hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>操作日志（后台每个动作都留痕，审计用）</h3>
+            <button id="logs-refresh" class="btn plain small">🔄 刷新</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>时间</th><th>操作员</th><th>动作</th><th>对象</th><th>明细</th><th>IP</th></tr></thead>
+              <tbody id="logs-body"><tr><td colspan="6" class="muted">加载中…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 用量分析 ========== -->
+      <section id="tab-usage" class="tab hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>楼栋用量分析</h3>
+            <div>
+              <label class="muted">账期：</label>
+              <input type="month" id="usage-period">
+              <button id="usage-load" class="btn green small">查 看</button>
+            </div>
+          </div>
+          <div id="usage-summary" class="muted">选择账期后点"查看"。</div>
+          <h4>近 6 个月小区用量趋势</h4>
+          <div id="trend-chart" class="chart"></div>
+          <h4>异常高耗户（疑似漏水漏电隐患点）</h4>
+          <div id="abnormal-list" class="muted">-</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 住户详情抽屉：实时欠费汇总 / 明细 / 绑定居民 / 定向催缴 -->
+  <div id="hh-drawer" class="drawer hidden">
+    <div class="drawer-card">
+      <div class="drawer-head">
+        <div>
+          <div class="drawer-title" id="hd-title">住户详情</div>
+          <div class="muted" id="hd-sub"></div>
+        </div>
+        <button id="hd-close" class="btn plain small">✕ 关闭</button>
+      </div>
+      <div id="hh-detail-body"></div>
+    </div>
+  </div>
+
+  <script src="admin.js?v=9"></script>
+</body>
+</html>

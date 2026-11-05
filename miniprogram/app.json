@@ -1,0 +1,23 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/bind/bind",
+    "pages/pay/pay",
+    "pages/result/result",
+    "pages/bills/bills",
+    "pages/profile/profile",
+    "pages/repair/repair",
+    "pages/voucher/voucher"
+  ],
+  "window": {
+    "navigationBarTitleText": "崇文兰亭缴费通",
+    "navigationBarBackgroundColor": "#2B6CB0",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F4F7FB",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents",
+  "__usePrivacyCheck__": true
+}

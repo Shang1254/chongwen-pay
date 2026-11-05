@@ -1,0 +1,39 @@
+<view class="page">
+  <!-- 多房产提示 -->
+  <view class="room-line" wx:if="{{roomLabel}}">📌 当前房号：{{roomLabel}}{{hhCount > 1 ? '（绑了 ' + hhCount + ' 套房，可在【我的】里切换）' : ''}}</view>
+
+  <!-- 待缴 -->
+  <view class="section-title" wx:if="{{unpaid.length > 0}}">待缴（{{unpaid.length}} 笔）</view>
+  <view class="bill-row" wx:for="{{unpaid}}" wx:key="id">
+    <view class="bill-row-main">
+      <view class="bill-row-name">{{item.emoji}} {{item.label}}（{{item.period}}）</view>
+      <view class="bill-row-meta">{{item.dueDate}} 前缴清 · 用量 {{item.usage}}</view>
+    </view>
+    <view class="bill-row-right">
+      <view class="bill-row-amount">¥{{item.amount}}</view>
+      <view class="tag {{item.overdueDays > 0 ? 'tag-red' : 'tag-green'}}">
+        {{item.overdueDays > 0 ? '逾期' + item.overdueDays + '天' : '待缴'}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 已缴 -->
+  <view class="section-title mt" wx:if="{{paid.length > 0}}">已缴清（{{paid.length}} 笔）</view>
+  <view class="bill-row done" wx:for="{{paid}}" wx:key="id" data-id="{{item.id}}" bindtap="goVoucher">
+    <view class="bill-row-main">
+      <view class="bill-row-name">{{item.emoji}} {{item.label}}（{{item.period}}）</view>
+      <view class="bill-row-meta">{{item.paidAt}} 缴清 · 点这里看电子凭证</view>
+    </view>
+    <view class="bill-row-right">
+      <view class="bill-row-amount">¥{{item.amount}}</view>
+      <view class="tag tag-green">已缴</view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="card" wx:if="{{!loading && unpaid.length === 0 && paid.length === 0}}">
+    <view class="empty-tip">还没有账单记录</view>
+  </view>
+
+  <button class="btn-primary mt-btn" wx:if="{{unpaid.length > 0}}" bindtap="goPay">去缴费</button>
+</view>

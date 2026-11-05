@@ -1,0 +1,101 @@
+<view class="page">
+  <!-- 顶部横幅 -->
+  <view class="banner">
+    <view class="banner-title">崇文兰亭便民缴费通</view>
+    <view class="banner-sub">{{pilotText}}</view>
+  </view>
+
+  <!-- 零加价公示：审核与业主都看得到 -->
+  <view class="price-notice">💡 {{priceNotice}}</view>
+
+  <!-- 2栋试点测试入口：还没解锁时显示 -->
+  <view class="card test-card" wx:if="{{!testAccess && !loading}}">
+    <view class="test-row">
+      <view class="test-icon">🔑</view>
+      <view class="test-info">
+        <view class="test-title">2栋试点测试入口</view>
+        <view class="test-tip">试点阶段凭物业邀请码进入，暂不对外开放，避免其他楼栋误绑</view>
+      </view>
+    </view>
+    <button class="btn-ghost test-btn" bindtap="testEntry">输入邀请码解锁</button>
+  </view>
+
+  <!-- 服务器连不上：明确告诉居民出了什么问题，能一键重试 -->
+  <view class="card center-card" wx:if="{{error && !loading}}">
+    <view class="big-emoji">📡</view>
+    <view class="card-title">暂时连不上服务</view>
+    <view class="card-tip">{{error}}，请检查网络后重试；多次失败请拨打物业电话 {{phone}}</view>
+    <button class="btn-primary" bindtap="retry">重新加载</button>
+  </view>
+
+  <!-- 还没绑户号：先引导绑定 -->
+  <view class="card center-card" wx:if="{{!household && !loading && !error && testAccess}}">
+    <view class="big-emoji">🏠</view>
+    <view class="card-title">还没有绑定您家的房号</view>
+    <view class="card-tip">绑一次，以后每个月打开就能交水电费和物业费，不用再跑物业</view>
+    <button class="btn-primary" bindtap="goBind">立即绑定户号</button>
+  </view>
+
+  <!-- 已绑定：电费 / 水费 / 物业费 三张大卡片 -->
+  <block wx:if="{{household}}">
+    <!-- 多房产切换：绑了多套房才显示 -->
+    <view class="hh-pills" wx:if="{{households.length > 1}}">
+      <view class="hh-pill {{item.id === selectedId ? 'on' : ''}}" wx:for="{{households}}" wx:key="id"
+            data-id="{{item.id}}" bindtap="switchHousehold">
+        <text>{{item.roomLabel}}</text>
+        <text class="hh-role" wx:if="{{item.role === 'tenant'}}">租</text>
+      </view>
+    </view>
+
+    <view class="home-card" bindtap="goPay">
+      <view class="home-card-head">
+        <text class="home-emoji">⚡</text>
+        <text class="home-card-name">电费</text>
+      </view>
+      <view class="big-amount">¥{{electric.amount}}</view>
+      <view class="home-card-tip">{{electric.count > 0 ? electric.count + ' 笔待缴，点这里去缴费' : '暂无待缴，真省心'}}</view>
+    </view>
+
+    <view class="home-card" bindtap="goPay">
+      <view class="home-card-head">
+        <text class="home-emoji">💧</text>
+        <text class="home-card-name">水费</text>
+      </view>
+      <view class="big-amount">¥{{water.amount}}</view>
+      <view class="home-card-tip">{{water.count > 0 ? water.count + ' 笔待缴，点这里去缴费' : '暂无待缴，真省心'}}</view>
+    </view>
+
+    <view class="home-card" bindtap="goPay">
+      <view class="home-card-head">
+        <text class="home-emoji">🏢</text>
+        <text class="home-card-name">物业费</text>
+      </view>
+      <view class="big-amount">¥{{property.amount}}</view>
+      <view class="home-card-tip">{{property.count > 0 ? property.count + ' 笔待缴，点这里去缴费' : '暂无待缴，谢谢支持物业工作'}}</view>
+    </view>
+
+    <!-- 一键全缴：总量大于 0 才显示 -->
+    <button class="btn-primary pay-all" wx:if="{{total != '0.00'}}" bindtap="goPay">
+      一键缴纳全部（¥{{total}}）
+    </button>
+
+    <!-- 次要入口 -->
+    <view class="row-btns">
+      <button class="btn-ghost half" bindtap="goBills">📋 缴费记录</button>
+      <button class="btn-ghost half" bindtap="goRepair">🔧 物业报修</button>
+    </view>
+    <view class="row-btns">
+      <button class="btn-ghost full" bindtap="goProfile">🏠 我的户号</button>
+    </view>
+
+    <view class="footer-tip">{{companyShort}} · 物业电话：{{phone}}</view>
+  </block>
+
+  <!-- 加载骨架屏：比一行文字更有"正在加载"的感觉 -->
+  <block wx:if="{{loading}}">
+    <view class="sk sk-banner"></view>
+    <view class="sk sk-card"></view>
+    <view class="sk sk-line"></view>
+    <view class="sk sk-line short"></view>
+  </block>
+</view>
