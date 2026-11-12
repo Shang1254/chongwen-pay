@@ -1,2 +1,5 @@
 node_modules/
 .zcode-site/
+
+# 微信开发者工具私人配置
+project.private.config.json
