@@ -300,6 +300,30 @@ async function main() {
   const nh2 = await api('POST', '/api/admin/notify-household', { householdId: h2.id }, adminTk);
   check('定向催缴·当日去重', nh2.body.ok && nh2.body.data.sent === 0 && nh2.body.data.skipped >= 1, nh2.body.data.message);
 
+  // 28. 报修看板：先造一个工单，再改状态 + 指派 + 优先级 + 流转日志
+  const rCreate = await api('POST', '/api/repair/create', {
+    category: '公共区域', content: '看板测试工单：楼道灯不亮（E2E 自动创建）', contact: '13800001234'
+  }, tk);
+  const rId = rCreate.body.ok ? rCreate.body.data.id : 0;
+  const rUpdate = await api('POST', '/api/admin/repair-status', {
+    id: rId, status: 'doing', priority: 'urgent', assignee: '王师傅', feedback: '看板测试：已派单'
+  }, adminTk);
+  check('报修看板·改状态/指派', rUpdate.body.ok === true, rUpdate.body.data ? rUpdate.body.data.message : rUpdate.body.message);
+  const repairsAfter = await api('GET', '/api/admin/repairs', null, adminTk);
+  const rNew = (repairsAfter.body.data || []).find(function (x) { return x.id === rId; });
+  check('报修看板·字段生效', !!rNew && rNew.priority === 'urgent' && rNew.assignee === '王师傅',
+    rNew ? '优先级 ' + rNew.priorityLabel + '，师傅 ' + rNew.assignee : '未找到工单');
+  const [logRows] = await pool.query('SELECT COUNT(*) AS c FROM repair_logs WHERE repair_id = ?', [rId]);
+  check('报修看板·流转日志', logRows[0].c >= 1, '日志 ' + logRows[0].c + ' 条');
+
+  // 29. 缴费看板：48 户热力图数据 + 单元汇总
+  const nowD = new Date();
+  const curMonth = nowD.getFullYear() + '-' + String(nowD.getMonth() + 1).padStart(2, '0');
+  const cb = await api('GET', '/api/admin/collection-board?period=' + curMonth, null, adminTk);
+  const cbData = cb.body.data || {};
+  check('缴费看板·热力图数据', cb.body.ok && (cbData.households || []).length >= 48 && (cbData.units || []).length === 2,
+    '户数 ' + (cbData.households || []).length + '，全缴 ' + (cbData.summary ? cbData.summary.allPaid : 0) + ' 户');
+
   console.log('');
   console.log('======== 自测结果：' + pass + ' 通过 / ' + fail + ' 失败 ========');
 
@@ -318,6 +342,7 @@ async function main() {
       await pool.query('DELETE FROM notifications WHERE user_id IN (?)', [eids]);
       await pool.query('DELETE FROM check_logs WHERE user_id IN (?)', [eids]);
       await pool.query('DELETE FROM repair_orders WHERE user_id IN (?)', [eids]);
+      await pool.query('DELETE FROM repair_logs WHERE repair_id NOT IN (SELECT id FROM repair_orders)');
       await pool.query('DELETE FROM orders WHERE user_id IN (?)', [eids]);
       await pool.query('DELETE FROM order_bills WHERE order_id NOT IN (SELECT id FROM orders)');
       await pool.query('DELETE FROM users WHERE id IN (?)', [eids]);

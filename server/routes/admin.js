@@ -347,6 +347,9 @@ router.get('/repairs', auth('admin'), async function (req, res, next) {
           contact: cryptoUtil.decryptText(r.contact_enc),
           status: r.status,
           statusLabel: S[r.status] || r.status,
+          priority: r.priority || 'normal',
+          priorityLabel: r.priority === 'urgent' ? '紧急' : (r.priority === 'high' ? '加急' : '普通'),
+          assignee: r.assignee || '',
           feedback: r.feedback || '',
           createdAt: String(r.created_at).slice(0, 19)
         };
@@ -360,15 +363,118 @@ router.post('/repair-status', auth('admin'), async function (req, res, next) {
     const b = req.body || {};
     const id = Number(b.id);
     const status = String(b.status || '');
-    if (!id || ['pending', 'doing', 'done'].indexOf(status) === -1) {
-      return res.json({ ok: false, message: '参数不对' });
+    if (!id) return res.json({ ok: false, message: '缺少报修ID' });
+    const [oldRows] = await pool.query('SELECT * FROM repair_orders WHERE id = ? LIMIT 1', [id]);
+    if (!oldRows[0]) return res.json({ ok: false, message: '报修不存在' });
+    const old = oldRows[0];
+
+    const sets = [];
+    const args = [];
+    if (['pending', 'doing', 'done'].indexOf(status) >= 0) { sets.push('status = ?'); args.push(status); }
+    if (b.assignee !== undefined) { sets.push('assignee = ?'); args.push(String(b.assignee || '').slice(0, 30)); }
+    if (b.priority !== undefined && ['normal', 'high', 'urgent'].indexOf(b.priority) >= 0) {
+      sets.push('priority = ?'); args.push(b.priority);
     }
-    await pool.query(
-      'UPDATE repair_orders SET status = ?, feedback = ?, updated_at = NOW() WHERE id = ?',
-      [status, String(b.feedback || '').slice(0, 300), id]
+    if (b.feedback !== undefined) { sets.push('feedback = ?'); args.push(String(b.feedback || '').slice(0, 300)); }
+    if (!sets.length) return res.json({ ok: false, message: '没有要更新的字段' });
+
+    sets.push('updated_at = NOW()');
+    args.push(id);
+    await pool.query('UPDATE repair_orders SET ' + sets.join(', ') + ' WHERE id = ?', args);
+
+    // 看板拖拽/改派都写工单流转日志，方便追责
+    const newStatus = ['pending', 'doing', 'done'].indexOf(status) >= 0 ? status : old.status;
+    if (newStatus !== old.status || b.assignee !== undefined || b.priority !== undefined) {
+      await pool.query(
+        'INSERT INTO repair_logs (repair_id, from_status, to_status, operator, note) VALUES (?, ?, ?, ?, ?)',
+        [id, old.status, newStatus, '物业管理员',
+          (b.feedback ? String(b.feedback).slice(0, 300) : '') +
+          (b.assignee !== undefined ? ' 指派:' + (b.assignee || '未指派') : '') +
+          (b.priority !== undefined ? ' 优先级:' + ({ normal: '普通', high: '加急', urgent: '紧急' })[b.priority] : '')]
+      );
+    }
+
+    await logAdmin(req, 'repair-status', '报修#' + id,
+      '状态 ' + (newStatus) + (b.assignee !== undefined ? '，师傅:' + (b.assignee || '未指派') : '') +
+      (b.priority !== undefined ? '，优先级:' + b.priority : '') + (b.feedback ? '，回复：' + b.feedback : ''));
+    res.json({
+      ok: true,
+      data: {
+        message: '已更新为「' + ({ pending: '待处理', doing: '处理中', done: '已完成' })[newStatus] + '」' +
+          (b.assignee !== undefined && b.assignee ? '，指派给 ' + b.assignee : '')
+      }
+    });
+  } catch (e) { next(e); }
+});
+
+// ---------- 缴费看板：按单元/楼层/房号看当期收缴情况（热力图） ----------
+router.get('/collection-board', auth('admin'), async function (req, res, next) {
+  try {
+    const period = String((req.query && req.query.period) || '').trim() || tool.periodNow();
+    const [hs] = await pool.query(
+      'SELECT * FROM households WHERE status = 1 ORDER BY unit, room_no'
     );
-    await logAdmin(req, 'repair-status', '报修#' + id, '状态更新为 ' + status + (b.feedback ? '，回复：' + b.feedback : ''));
-    res.json({ ok: true, data: { message: '已更新为「' + ({ pending: '待处理', doing: '处理中', done: '已完成' })[status] + '」' } });
+    const [billRows] = await pool.query(
+      'SELECT household_id, type, status, amount FROM bills WHERE period = ?',
+      [period]
+    );
+    const map = {};
+    billRows.forEach(function (b) {
+      const m = map[b.household_id] || (map[b.household_id] = { total: 0, paid: 0, amount: 0, paidAmount: 0 });
+      m.total++;
+      m.amount += Number(b.amount);
+      if (b.status === 'paid') { m.paid++; m.paidAmount += Number(b.amount); }
+    });
+
+    const rows = hs.map(function (h) {
+      const m = map[h.id] || { total: 0, paid: 0, amount: 0, paidAmount: 0 };
+      let status = 'none';
+      if (m.total > 0) status = m.paid === m.total ? 'paid' : (m.paid > 0 ? 'partial' : 'unpaid');
+      return {
+        householdId: h.id,
+        roomLabel: roomLabelOf(h),
+        unit: h.unit,
+        floor: Number(String(h.room_no).slice(0, 1)) || 0,
+        room: h.room_no,
+        total: m.total,
+        paid: m.paid,
+        amount: Math.round(m.amount * 100) / 100,
+        paidAmount: Math.round(m.paidAmount * 100) / 100,
+        status: status
+      };
+    });
+
+    const units = ['1', '2'].map(function (u) {
+      const rs = rows.filter(function (r) { return r.unit === u; });
+      const paid = rs.filter(function (r) { return r.status === 'paid'; }).length;
+      const totalAmount = Math.round(rs.reduce(function (s, r) { return s + r.amount; }, 0) * 100) / 100;
+      const paidAmount = Math.round(rs.reduce(function (s, r) { return s + r.paidAmount; }, 0) * 100) / 100;
+      return {
+        unit: u,
+        households: rs.length,
+        allPaid: paid,
+        rate: rs.length ? Math.round(paid / rs.length * 100) : 0,
+        totalAmount: totalAmount,
+        paidAmount: paidAmount,
+        rateAmount: totalAmount ? Math.round(paidAmount / totalAmount * 100) : 0
+      };
+    });
+
+    res.json({
+      ok: true,
+      data: {
+        period: period,
+        households: rows,
+        summary: {
+          households: rows.length,
+          allPaid: rows.filter(function (r) { return r.status === 'paid'; }).length,
+          partial: rows.filter(function (r) { return r.status === 'partial'; }).length,
+          unpaid: rows.filter(function (r) { return r.status === 'unpaid'; }).length,
+          none: rows.filter(function (r) { return r.status === 'none'; }).length
+        },
+        units: units
+      }
+    });
   } catch (e) { next(e); }
 });
 

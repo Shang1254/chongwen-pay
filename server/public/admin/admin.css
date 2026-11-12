@@ -391,6 +391,61 @@ code { background: #EEF4FB; padding: 1px 6px; border-radius: 4px; }
   .wb-grid { grid-template-columns: 1fr; }
 }
 
+/* ---------- 报修看板（拖拽） ---------- */
+.kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.kanban-col {
+  background: #F4F7FB; border: 2px dashed transparent; border-radius: 14px;
+  padding: 10px; min-height: 260px; display: flex; flex-direction: column;
+}
+.kanban-col.drag-over { border-color: #2B6CB0; background: #E8F0FA; }
+.kanban-head { display: flex; align-items: center; gap: 8px; font-weight: 700; padding: 4px 6px 10px; }
+.kanban-count { margin-left: auto; background: #fff; border-radius: 10px; padding: 0 9px; font-size: 13px; color: #2B6CB0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot-red { background: #E53935; }
+.dot-orange { background: #E67E22; }
+.dot-green { background: #2F855A; }
+.kanban-cards { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.kb-card {
+  background: #fff; border-radius: 10px; padding: 10px 12px;
+  box-shadow: 0 2px 8px rgba(43,108,176,.08);
+  border-left: 4px solid #C5D4E8; cursor: grab; user-select: none;
+}
+.kb-card.dragging { opacity: .45; }
+.kb-card.p-high { border-left-color: #E67E22; }
+.kb-card.p-urgent { border-left-color: #C62828; }
+.kb-card-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.kb-room { font-weight: 700; }
+.kb-pri { font-size: 11px; border-radius: 8px; padding: 1px 8px; }
+.kb-pri.high { background: #FFF3E0; color: #E67E22; }
+.kb-pri.urgent { background: #FDECEA; color: #C62828; }
+.kb-cat { font-size: 13px; color: #1E4E8C; margin-top: 2px; }
+.kb-content { font-size: 13px; color: #5C6B7A; margin-top: 2px; }
+.kb-meta { font-size: 12px; color: #8FA0B5; margin-top: 6px; }
+.kb-empty { color: #9AA9BC; font-size: 13px; text-align: center; padding: 24px 0; }
+
+/* ---------- 缴费看板（热力图） ---------- */
+.cb-units-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 18px; }
+.cb-unit-head { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
+.cb-grid-wrap { background: #FAFCFE; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+.cb-grid-title { font-weight: 700; margin-bottom: 10px; color: #1E4E8C; }
+.cb-floor { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
+.cb-floor-label { width: 54px; font-size: 13px; color: #6B7A8C; flex-shrink: 0; }
+.cb-cell {
+  flex: 1; text-align: center; padding: 10px 0; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  border: 1px solid transparent; transition: transform .1s;
+}
+.cb-cell:hover { transform: translateY(-2px); }
+.cb-cell.paid { background: #E9F7EE; color: #2F855A; border-color: #BFE5CC; }
+.cb-cell.partial { background: #FFF3E0; color: #9A4E00; border-color: #F0D2A8; }
+.cb-cell.unpaid { background: #FDECEA; color: #C62828; border-color: #F2C0BA; }
+.cb-cell.none { background: #F1F5FB; color: #9AA9BC; }
+
+@media (max-width: 860px) {
+  .kanban { grid-template-columns: 1fr; }
+  .cb-units-summary { grid-template-columns: 1fr; }
+}
+
 footer {
   text-align: center;
   color: #9AA9BC;

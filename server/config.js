@@ -25,7 +25,7 @@ module.exports = {
     host: process.env.CWLT_DB_HOST || '127.0.0.1',
     port: Number(process.env.CWLT_DB_PORT || 3306),
     user: process.env.CWLT_DB_USER || 'root',
-    password: process.env.CWLT_DB_PASS || 'Szx5201314',   // ← 本机 MySQL root 密码（已配置好）
+    password: process.env.CWLT_DB_PASS || '',               // 本机 MySQL 密码通过环境变量 CWLT_DB_PASS 配置，不要写进代码
     database: process.env.CWLT_DB || 'cwlt_pay'
   },
 

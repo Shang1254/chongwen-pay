@@ -199,12 +199,26 @@ CREATE TABLE IF NOT EXISTS repair_orders (
   img_url VARCHAR(300) NOT NULL DEFAULT '' COMMENT '现场照片路径（/uploads/xx.jpg）',
   contact_enc VARCHAR(300) NOT NULL DEFAULT '' COMMENT '联系电话（加密存储）',
   status VARCHAR(10) NOT NULL DEFAULT 'pending' COMMENT 'pending=待处理 doing=处理中 done=已完成',
+  priority VARCHAR(10) NOT NULL DEFAULT 'normal' COMMENT 'normal=普通 high=加急 urgent=紧急',
+  assignee VARCHAR(30) NOT NULL DEFAULT '' COMMENT '维修师傅',
   feedback VARCHAR(300) NOT NULL DEFAULT '' COMMENT '物业处理回复',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT NULL,
   KEY idx_user (user_id), KEY idx_status (status),
   KEY idx_created (created_at)
 ) ENGINE=InnoDB COMMENT='物业报修单表';
+
+-- 报修工单流转日志（看板拖拽/状态变更都留痕）
+CREATE TABLE IF NOT EXISTS repair_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  repair_id INT NOT NULL,
+  from_status VARCHAR(10) NOT NULL DEFAULT '' COMMENT '原状态',
+  to_status VARCHAR(10) NOT NULL DEFAULT '' COMMENT '新状态',
+  operator VARCHAR(30) NOT NULL DEFAULT '' COMMENT '操作人',
+  note VARCHAR(300) NOT NULL DEFAULT '' COMMENT '备注',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_repair (repair_id)
+) ENGINE=InnoDB COMMENT='报修工单流转日志';
 
 -- ------------------------------------------------------------
 -- 12. 监管留痕表：每笔缴费一条，哈希链防篡改

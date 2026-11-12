@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>崇文兰亭缴费通 · 物业端 | 武汉鼎诚物业</title>
-  <link rel="stylesheet" href="admin.css?v=9">
+  <link rel="stylesheet" href="admin.css?v=10">
 </head>
 <body>
 
@@ -42,6 +42,9 @@
         <div class="side-group">账单管理</div>
         <div class="side-item sub" data-tab="wizard">✍️ 抄表向导</div>
         <div class="side-item sub" data-tab="import">📥 批量导入</div>
+        <div class="side-group">看板</div>
+        <div class="side-item sub" data-tab="repair-board">🧾 报修看板</div>
+        <div class="side-item sub" data-tab="collection-board">🔥 缴费看板</div>
         <div class="side-group">服务</div>
         <div class="side-item" data-tab="repairs">🔧 报修处理</div>
         <div class="side-group">住户与档案</div>
@@ -106,6 +109,7 @@
             <div class="btn-row mt8">
               <button class="btn green" onclick="goto('wizard')">✍️ 去抄表</button>
               <button id="wb-push" class="btn plain">📣 一键催缴</button>
+              <button id="wb-speak" class="btn plain">🔊 语音播报</button>
             </div>
             <p class="muted mt8">进度 = 本月已生成账单的户数 / 总户数。录完电、水、物业费三项即 100%。</p>
           </div>
@@ -148,6 +152,7 @@
               <button id="f-reset" class="btn plain small">重置</button>
               <button id="push-unpaid" class="btn green small">📣 一键催缴</button>
               <button id="export-csv" class="btn plain small">⬇️ 导出催缴单</button>
+              <button id="print-unpaid" class="btn plain small">🖨 打印催缴单</button>
             </div>
           </div>
           <div class="table-wrap">
@@ -291,6 +296,46 @@
         </div>
       </section>
 
+      <!-- ========== 报修看板 ========== -->
+      <section id="tab-repair-board" class="tab hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>🧾 报修工单看板 <span class="muted">（拖动卡片改状态，点卡片看详情/指派）</span></h3>
+            <button id="rb-refresh" class="btn plain small">🔄 刷新</button>
+          </div>
+          <div class="kanban">
+            <div class="kanban-col" data-status="pending">
+              <div class="kanban-head"><span class="dot dot-red"></span>待处理 <span class="kanban-count" id="kb-count-pending">0</span></div>
+              <div class="kanban-cards" id="kb-pending"></div>
+            </div>
+            <div class="kanban-col" data-status="doing">
+              <div class="kanban-head"><span class="dot dot-orange"></span>处理中 <span class="kanban-count" id="kb-count-doing">0</span></div>
+              <div class="kanban-cards" id="kb-doing"></div>
+            </div>
+            <div class="kanban-col" data-status="done">
+              <div class="kanban-head"><span class="dot dot-green"></span>已完成 <span class="kanban-count" id="kb-count-done">0</span></div>
+              <div class="kanban-cards" id="kb-done"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 缴费看板 ========== -->
+      <section id="tab-collection-board" class="tab hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>🔥 缴费看板（按单元/楼层看收缴情况）</h3>
+            <div>
+              <input type="month" id="cb-period">
+              <button id="cb-load" class="btn green small">查 看</button>
+            </div>
+          </div>
+          <div class="stat-grid" id="cb-summary"></div>
+          <div id="cb-units" class="muted">加载中…</div>
+          <p class="muted mt8">🟩 全部缴清　🟧 部分缴纳　🟥 未缴　⬜ 未出账；点击房号查看该户欠费详情。</p>
+        </div>
+      </section>
+
       <!-- ========== 报修处理 ========== -->
       <section id="tab-repairs" class="tab hidden">
         <div class="panel">
@@ -388,6 +433,20 @@
     </div>
   </div>
 
-  <script src="admin.js?v=9"></script>
+  <!-- 报修工单详情抽屉（看板点卡片打开） -->
+  <div id="rp-drawer" class="drawer hidden">
+    <div class="drawer-card">
+      <div class="drawer-head">
+        <div>
+          <div class="drawer-title" id="rp-title">工单详情</div>
+          <div class="muted" id="rp-sub"></div>
+        </div>
+        <button id="rp-close" class="btn plain small">✕ 关闭</button>
+      </div>
+      <div id="rp-body"></div>
+    </div>
+  </div>
+
+  <script src="admin.js?v=10"></script>
 </body>
 </html>

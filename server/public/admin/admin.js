@@ -153,6 +153,7 @@ $('logout-btn').onclick = function () {
 var TITLES = {
   overview: '工作台', unpaid: '欠费名单', orders: '收款记录', regulatory: '监管留痕',
   wizard: '抄表向导', import: '批量导入', repairs: '报修处理',
+  'repair-board': '报修看板', 'collection-board': '缴费看板',
   households: '住户档案', adminlogs: '操作日志', usage: '用量分析'
 };
 
@@ -168,6 +169,8 @@ function activateTab(tab) {
   if (tab === 'unpaid') loadUnpaid();
   if (tab === 'orders') loadOrders();
   if (tab === 'repairs') loadRepairs();
+  if (tab === 'repair-board') loadRepairBoard();
+  if (tab === 'collection-board') loadCollectionBoard();
   if (tab === 'households') loadHouseholds();
   if (tab === 'usage') loadUsage($('usage-period').value);
   if (tab === 'adminlogs') loadAdminLogs();
@@ -860,6 +863,213 @@ $('rg-export').onclick = function () {
   }).catch(function (e) { alert('❌ ' + e.message); });
 };
 
+// ---------- 报修看板（拖拽改状态） ----------
+var kbCache = [];
+
+function loadRepairBoard() {
+  api('/repairs').then(function (list) {
+    kbCache = list;
+    renderKanban();
+  }).catch(function (e) {
+    $('kb-pending').innerHTML = '<div class="kb-empty red">' + esc(e.message) + '</div>';
+  });
+}
+
+function renderKanban() {
+  var cols = { pending: [], doing: [], done: [] };
+  kbCache.forEach(function (r) { (cols[r.status] || cols.pending).push(r); });
+  ['pending', 'doing', 'done'].forEach(function (s) {
+    var box = $('kb-' + s);
+    var n = $('kb-count-' + s);
+    if (n) n.textContent = cols[s].length;
+    if (!box) return;
+    box.innerHTML = cols[s].map(function (r) {
+      var pri = r.priority && r.priority !== 'normal'
+        ? '<span class="kb-pri ' + r.priority + '">' + esc(r.priorityLabel) + '</span>' : '';
+      return '<div class="kb-card p-' + (r.priority || 'normal') + '" draggable="true" data-id="' + r.id + '">' +
+        '<div class="kb-card-top"><span class="kb-room">' + esc(r.roomLabel) + '</span>' + pri + '</div>' +
+        '<div class="kb-cat">' + esc(r.category) + '</div>' +
+        '<div class="kb-content">' + esc(r.content.slice(0, 42)) + '</div>' +
+        '<div class="kb-meta">' + (r.assignee ? '👷 ' + esc(r.assignee) + ' · ' : '') + esc(r.createdAt.slice(5, 16)) + '</div>' +
+        '</div>';
+    }).join('') || '<div class="kb-empty">暂无工单</div>';
+
+    box.querySelectorAll('.kb-card').forEach(function (card) {
+      card.addEventListener('dragstart', function (e) {
+        e.dataTransfer.setData('text/plain', card.dataset.id);
+        e.dataTransfer.effectAllowed = 'move';
+        card.classList.add('dragging');
+      });
+      card.addEventListener('dragend', function () { card.classList.remove('dragging'); });
+      card.addEventListener('click', function () { openRepairDrawer(Number(card.dataset.id)); });
+    });
+  });
+}
+
+// 列拖放只绑定一次
+function setupKanbanDnd() {
+  document.querySelectorAll('.kanban-col').forEach(function (col) {
+    col.addEventListener('dragover', function (e) { e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', function () { col.classList.remove('drag-over'); });
+    col.addEventListener('drop', function (e) {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      var id = Number(e.dataTransfer.getData('text/plain'));
+      if (!id) return;
+      var r = kbCache.find(function (x) { return x.id === id; });
+      var status = col.dataset.status;
+      if (!r || r.status === status) return;
+      api('/repair-status', 'POST', { id: id, status: status }).then(function () {
+        loadRepairBoard();
+        loadOverview();
+      }).catch(function (err) { alert('❌ ' + err.message); });
+    });
+  });
+}
+
+function openRepairDrawer(id) {
+  var r = kbCache.find(function (x) { return x.id === id; });
+  if (!r) return;
+  $('rp-title').textContent = r.roomLabel + ' · ' + r.category;
+  $('rp-sub').textContent = '提交于 ' + r.createdAt + ' · 当前状态：' + r.statusLabel;
+  var html =
+    '<div class="drawer-sec"><b>📝 问题描述</b><div class="mt8">' + esc(r.content) + '</div>' +
+    (r.img ? '<div class="mt8"><a href="' + esc(r.img) + '" target="_blank">📷 查看现场照片</a></div>' : '') + '</div>' +
+    '<div class="drawer-sec"><b>📞 联系电话</b><div class="mt8">' +
+    (r.contact ? '<a href="tel:' + esc(r.contact) + '">' + esc(r.contact) + '</a>' : '-') + '</div></div>' +
+    '<div class="drawer-sec"><b>🔧 处理设置</b>' +
+    '<div class="form-grid mt8">' +
+    '<div><label>状态</label><select id="rp-status">' +
+    '<option value="pending"' + (r.status === 'pending' ? ' selected' : '') + '>待处理</option>' +
+    '<option value="doing"' + (r.status === 'doing' ? ' selected' : '') + '>处理中</option>' +
+    '<option value="done"' + (r.status === 'done' ? ' selected' : '') + '>已完成</option></select></div>' +
+    '<div><label>优先级</label><select id="rp-priority">' +
+    '<option value="normal"' + (r.priority === 'normal' ? ' selected' : '') + '>普通</option>' +
+    '<option value="high"' + (r.priority === 'high' ? ' selected' : '') + '>加急</option>' +
+    '<option value="urgent"' + (r.priority === 'urgent' ? ' selected' : '') + '>紧急</option></select></div>' +
+    '<div><label>维修师傅</label><input id="rp-assignee" value="' + esc(r.assignee || '') + '" placeholder="例如：王师傅"></div>' +
+    '</div>' +
+    '<div class="form-grid mt8"><div style="grid-column:1/-1"><label>给业主的回复</label>' +
+    '<input id="rp-feedback" value="' + esc(r.feedback || '') + '" placeholder="例如：已安排师傅下午上门"></div></div>' +
+    '<div class="btn-row mt8"><button class="btn green" onclick="saveRepair(' + r.id + ')">保存并留痕</button></div>' +
+    '</div>';
+  $('rp-body').innerHTML = html;
+  show($('rp-drawer'));
+}
+
+window.saveRepair = function (id) {
+  api('/repair-status', 'POST', {
+    id: id,
+    status: $('rp-status').value,
+    priority: $('rp-priority').value,
+    assignee: $('rp-assignee').value.trim(),
+    feedback: $('rp-feedback').value.trim()
+  }).then(function (d) {
+    alert('✅ ' + d.message);
+    hide($('rp-drawer'));
+    loadRepairBoard();
+    loadOverview();
+  }).catch(function (e) { alert('❌ ' + e.message); });
+};
+
+// ---------- 缴费看板（楼栋热力图） ----------
+function loadCollectionBoard() {
+  var period = $('cb-period').value || monthStr();
+  $('cb-units').textContent = '加载中…';
+  api('/collection-board?period=' + period).then(function (d) {
+    renderCollectionBoard(d);
+  }).catch(function (e) {
+    $('cb-units').innerHTML = '<div class="red">' + esc(e.message) + '</div>';
+  });
+}
+
+function renderCollectionBoard(d) {
+  var s = d.summary;
+  var cards = [
+    { label: '全部缴清', value: s.allPaid + ' 户', cls: 'green' },
+    { label: '部分缴纳', value: s.partial + ' 户', cls: 'orange' },
+    { label: '未缴', value: s.unpaid + ' 户', cls: 'red' },
+    { label: '未出账', value: s.none + ' 户', cls: 'muted' }
+  ];
+  $('cb-summary').innerHTML = cards.map(function (c) {
+    return '<div class="stat-card"><div class="stat-num ' + c.cls + '">' + c.value + '</div><div class="stat-label">' + c.label + '</div></div>';
+  }).join('');
+
+  var unitSummary = d.units.map(function (u) {
+    return '<div class="cb-unit"><div class="cb-unit-head"><b>' + u.unit + '单元</b>' +
+      '<span class="muted">全缴 ' + u.allPaid + '/' + u.households + ' 户 · 金额收缴率 ' + u.rateAmount + '%</span></div>' +
+      '<div class="progress-bar"><div style="width:' + u.rateAmount + '%"></div></div></div>';
+  }).join('');
+
+  var grids = d.units.map(function (u) {
+    var rows = d.households.filter(function (h) { return h.unit === u.unit; });
+    var floors = {};
+    rows.forEach(function (h) { (floors[h.floor] = floors[h.floor] || []).push(h); });
+    var grid = Object.keys(floors).sort().map(function (f) {
+      var cells = floors[f].sort(function (a, b) { return a.room < b.room ? -1 : 1; }).map(function (h) {
+        return '<div class="cb-cell ' + h.status + '" onclick="showHouseholdDetail(' + h.householdId + ')" ' +
+          'title="' + esc(h.roomLabel) + '：' + h.paid + '/' + h.total + ' 笔已缴，应缴 ¥' + money(h.amount) + '">' +
+          esc(h.room) + '</div>';
+      }).join('');
+      return '<div class="cb-floor"><div class="cb-floor-label">' + f + '层</div>' + cells + '</div>';
+    }).join('');
+    return '<div class="cb-grid-wrap"><div class="cb-grid-title">🏢 ' + u.unit + '单元（点击房号看详情）</div>' + grid + '</div>';
+  }).join('');
+
+  $('cb-units').innerHTML = '<div class="cb-units-summary">' + unitSummary + '</div>' + grids;
+}
+
+// ---------- 打印催缴单（当前筛选，全部记录） ----------
+$('print-unpaid').onclick = function () {
+  api('/unpaid?all=1&' + unpaidQuery()).then(function (d) {
+    var rows = d.rows || [];
+    if (!rows.length) { alert('当前筛选条件下没有欠费记录'); return; }
+    var total = rows.reduce(function (s, b) { return s + Number(b.amount); }, 0);
+    var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>催缴单</title>' +
+      '<style>body{font-family:"Microsoft YaHei";padding:22px;color:#1B2735}' +
+      'h1{font-size:22px;text-align:center;margin-bottom:6px}' +
+      '.sub{text-align:center;color:#666;font-size:13px;margin-bottom:14px}' +
+      'table{width:100%;border-collapse:collapse;font-size:14px}th,td{border:1px solid #999;padding:6px 8px;text-align:left}' +
+      'th{background:#eef4fb}.note{margin-top:16px;font-size:13px;color:#555;line-height:1.8}' +
+      '@media print{@page{margin:12mm}}</style></head><body>' +
+      '<h1>崇文兰亭 · 物业费/水电费催缴单</h1>' +
+      '<div class="sub">生成时间：' + new Date().toLocaleString() + '　共 ' + rows.length + ' 笔，合计 ¥' + money(total) + '</div>' +
+      '<table><thead><tr><th>房号</th><th>户主</th><th>类型</th><th>账期</th><th>金额</th><th>到期日</th><th>逾期</th></tr></thead><tbody>' +
+      rows.map(function (b) {
+        return '<tr><td>' + esc(b.roomLabel) + '</td><td>' + esc(b.ownerName) + '</td><td>' + esc(b.typeLabel) +
+          '</td><td>' + esc(b.period) + '</td><td>¥' + money(b.amount) + '</td><td>' + esc(b.dueDate) +
+          '</td><td>' + (b.overdueDays > 0 ? '逾期 ' + b.overdueDays + ' 天' : '') + '</td></tr>';
+      }).join('') +
+      '</tbody></table><div class="note">缴费方式：微信搜索“崇文兰亭缴费通”小程序，或到物业前台现金 / POS 缴纳。<br>' +
+      '咨询电话：88398808　·　武汉鼎诚物业</div></body></html>';
+    var w = window.open('', '_blank');
+    if (!w) { alert('浏览器拦截了弹窗，请允许后重试'); return; }
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(function () { w.print(); }, 350);
+  }).catch(function (e) { alert('❌ ' + e.message); });
+};
+
+// ---------- 语音播报（适老化） ----------
+$('wb-speak').onclick = function () {
+  if (!('speechSynthesis' in window)) { alert('当前浏览器不支持语音播报，请用 Chrome / Edge'); return; }
+  api('/overview').then(function (d) {
+    var text = '崇文兰亭物业缴费播报。当前未缴账单 ' + d.unpaidCount + ' 笔，合计 ' +
+      money(d.unpaidAmount) + ' 元；已逾期 ' + d.overdueCount + ' 笔；待处理报修 ' +
+      d.repairPending + ' 单；今日实收 ' + money(d.todayPaidAmount) + ' 元。';
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = 0.95;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  }).catch(function (e) { alert('❌ ' + e.message); });
+};
+
+$('rb-refresh').onclick = loadRepairBoard;
+$('rp-close').onclick = function () { hide($('rp-drawer')); };
+$('cb-load').onclick = loadCollectionBoard;
+
 // ---------- 启动 ----------
 (function init() {
   var nowMonth = monthStr();
@@ -867,9 +1077,11 @@ $('rg-export').onclick = function () {
   $('rg-month').value = nowMonth;
   $('wz-period').value = nowMonth;
   $('pb-period').value = nowMonth;
+  $('cb-period').value = nowMonth;
   $('wz-due').value = daysLater(15);
   $('pb-due').value = daysLater(15);
   $('stl-date').value = todayStr();
+  setupKanbanDnd();
   if (!TOKEN) { showLogin(); return; }
   showMain();
 })();

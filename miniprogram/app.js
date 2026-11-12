@@ -11,7 +11,7 @@ App({
     //    必须改成电脑的【局域网 IPv4】（cmd 里 ipconfig 查看无线网卡的 IPv4）
     //    并保证：手机和电脑连同一个 Wi-Fi/路由器
     // 当前已设为本机局域网 IP（2026-11-05 ipconfig 查得，换网络后记得改）：
-    apiBase: 'http://192.168.101.143:3000',
+    apiBase: 'http://192.168.3.139:3000',
     user: null,        // 当前登录用户
     household: null,   // 当前选中的户号信息
     households: [],    // 绑定的全部房产（支持多房产）
